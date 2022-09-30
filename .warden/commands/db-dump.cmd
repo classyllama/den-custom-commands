@@ -45,7 +45,7 @@ while (( "$#" )); do
 done
 
 if [[ -z "$SUBCOMMAND" ]]; then
-    echo -e "😮 \033[31mMissing option to specify where to pull media from\033[0m"
+    echo -e "😮 \033[31mMissing option to specify where to pull database from\033[0m"
     exit 1
 fi
 
