@@ -11,6 +11,9 @@ function :: {
 WARDEN_ENV_PATH="$(locateEnvPath)" || exit $?
 loadEnvConfig "${WARDEN_ENV_PATH}" || exit $?
 
+# Load extra config values from .env file
+eval "$(cat "${WARDEN_ENV_PATH}/.env" | sed 's/\r$//g' | grep "^ADOBE_")"
+
 assertDockerRunning
 
 ## change into the project directory
@@ -19,9 +22,10 @@ cd "${WARDEN_ENV_PATH}"
 ## configure command defaults
 WARDEN_WEB_ROOT="$(echo "${WARDEN_WEB_ROOT:-/}" | sed 's#^/#./#')"
 REQUIRED_FILES=("${WARDEN_WEB_ROOT}/auth.json")
-DB_DUMP="${DB_DUMP:-./backfill/magento-db.sql.gz}"
+DB_DUMP=
 DB_IMPORT=1
 AUTO_PULL=1
+MEDIA_SYNC=1
 URL_FRONT="https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}/"
 URL_ADMIN="https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}/backend/"
 
@@ -31,6 +35,10 @@ while (( "$#" )); do
     case "$1" in
         --skip-db-import)
             DB_IMPORT=
+            shift
+            ;;
+        --skip-media-sync)
+            MEDIA_SYNC=
             shift
             ;;
         --db-dump)
@@ -49,8 +57,10 @@ while (( "$#" )); do
     esac
 done
 
+REQUIRED_FILES+=("${WARDEN_WEB_ROOT}/app/etc/env.php.dev")
+
 ## include check for DB_DUMP file only when database import is expected
-[[ ${DB_IMPORT} ]] && REQUIRED_FILES+=("${DB_DUMP}" "${WARDEN_WEB_ROOT}/app/etc/env.php.dev")
+[[ ${DB_IMPORT} ]] && [[ "$DB_DUMP" ]] && REQUIRED_FILES+=("${DB_DUMP}")
 
 :: Verifying configuration
 INIT_ERROR=
@@ -138,12 +148,13 @@ den env exec -T php-fpm composer install
 
 ## import database only if --skip-db-import is not specified
 if [[ ${DB_IMPORT} ]]; then
-  :: Importing database
-  ## Comment this out in case of using Adobe Cloud
-  den db-import --gzipped --file "${DB_DUMP}"
-
-  ## Uncomment this Adobe Cloud projects
-  # den db-dump --cloud
+    if [[ "$DB_DUMP" ]]; then
+        :: Importing database
+        den import-db --gzipped --file "${DB_DUMP}"
+    elif [[ "$ADOBE_CLOUD_PROJECT_ID" ]]; then
+        :: Get database from Adobe Cloud and import
+        den db-dump --cloud
+    fi
 fi
 
 :: Installing application
@@ -161,6 +172,11 @@ den env exec -T php-fpm bin/magento app:config:dump themes scopes i18n
 :: Flushing cache
 den env exec -T php-fpm bin/magento cache:flush
 den env exec -T php-fpm bin/magento cache:disable block_html full_page
+
+if [[ $MEDIA_SYNC ]] && [[ "$ADOBE_CLOUD_PROJECT_ID" ]]; then
+    :: Sync Media
+    den sync-media --cloud
+fi
 
 :: Creating admin user
 DIFF=$((999999999-100000000+1))

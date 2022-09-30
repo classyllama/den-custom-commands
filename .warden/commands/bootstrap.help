@@ -5,6 +5,9 @@ WARDEN_USAGE=$(cat <<EOF
 \033[33mUsage:\033[0m
   bootstrap [--skip-db-import] [--db-dump <file>.sql.gz]
 
+  When passing no DB arguments and the variable ADOBE_CLOUD_PROJECT_ID exists in the .env file
+  the script will try to download and import a database from the Adobe Cloud project.
+
 \033[33mOptions:\033[0m
   -h, --help        Display this help menu
 
@@ -12,6 +15,8 @@ WARDEN_USAGE=$(cat <<EOF
                     to environment startup to facilitate use of locally built images
 
   --skip-db-import  skips over db import (assume db has already been imported)
+
+  --skip-media-sync  skips over media sync (media sync is only available for Adobe Cloud projects)
 
 \033[33mArguments:\033[0m
 
