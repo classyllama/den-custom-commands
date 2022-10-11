@@ -11,5 +11,5 @@ environment root. The simplest way to do that is to run the following
 command from your project's root directory:
 
 ```
-git archive --format=tar --remote=git@github.com:classyllama/den-custom-commands.git main .warden | tar -x
+wget -qO- https://github.com/classyllama/den-custom-commands/archive/refs/heads/main.tar.gz | tar -x --strip-components=1 --exclude='README.md'
 ```
