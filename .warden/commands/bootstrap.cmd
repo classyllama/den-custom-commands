@@ -179,9 +179,7 @@ if [[ $MEDIA_SYNC ]] && [[ "$ADOBE_CLOUD_PROJECT_ID" ]]; then
 fi
 
 :: Creating admin user
-DIFF=$((999999999-100000000+1))
-R=$(($(($RANDOM%$DIFF))+100000000))
-ADMIN_PASS=$R"admin"
+ADMIN_PASS=$(date | base64 | tail -c 15)"99"
 ADMIN_USER=localadmin
 
 den env exec -T php-fpm bin/magento admin:user:create \
