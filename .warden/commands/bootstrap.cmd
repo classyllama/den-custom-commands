@@ -13,6 +13,8 @@ loadEnvConfig "${WARDEN_ENV_PATH}" || exit $?
 
 # Load extra config values from .env file
 eval "$(cat "${WARDEN_ENV_PATH}/.env" | sed 's/\r$//g' | grep "^ADOBE_")"
+COMPOSER_VERSION=1
+eval "$(cat "${WARDEN_ENV_PATH}/.env" | sed 's/\r$//g' | grep "^COMPOSER_")"
 
 assertDockerRunning
 
@@ -142,8 +144,11 @@ den env up -d
 den shell -c "while ! nc -z db 3306 </dev/null; do sleep 2; done"
 
 :: Installing dependencies
-den env exec -T php-fpm bash \
-  -c '[[ $(composer -V | cut -d\  -f3 | cut -d. -f1) == 2 ]] || composer global require hirak/prestissimo'
+if [[ ${COMPOSER_VERSION} == 1 ]]; then
+  den env exec -T php-fpm bash \
+    -c '[[ $(composer -V | cut -d\  -f3 | cut -d. -f1) == 2 ]] || composer global require hirak/prestissimo'
+fi
+
 den env exec -T php-fpm composer install
 
 ## import database only if --skip-db-import is not specified
