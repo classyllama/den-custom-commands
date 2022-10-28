@@ -68,7 +68,7 @@ REQUIRED_FILES+=("${WARDEN_WEB_ROOT}/app/etc/env.php.dev")
 INIT_ERROR=
 
 ## attempt to install mutagen if not already present
-if [[ $OSTYPE =~ ^darwin ]] && ! which mutagen 2>/dev/null >/dev/null && which brew 2>/dev/null >/dev/null; then
+if [[ $OSTYPE =~ ^darwin ]] && ! which mutagen >/dev/null 2>&1 && which brew >/dev/null 2>&1; then
     warning "Mutagen could not be found; attempting install via brew."
     brew install havoc-io/mutagen/mutagen
 fi
