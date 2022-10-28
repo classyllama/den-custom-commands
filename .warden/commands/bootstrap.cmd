@@ -87,7 +87,7 @@ done
 
 ## verify warden version constraint
 WARDEN_VERSION=$(den version 2>/dev/null) || true
-WARDEN_REQUIRE=0.6.0
+WARDEN_REQUIRE=1.0.0-beta.1
 if ! test $(version ${WARDEN_VERSION}) -ge $(version ${WARDEN_REQUIRE}); then
   error "Warden ${WARDEN_REQUIRE} or greater is required (version ${WARDEN_VERSION} is installed)"
   INIT_ERROR=1
