@@ -163,7 +163,7 @@ if [[ ${DB_IMPORT} ]]; then
 fi
 
 :: Installing application
-den env exec -- -T php-fpm cp app/etc/env.php.dev app/etc/env.php
+den env exec -T php-fpm cp app/etc/env.php.dev app/etc/env.php
 den env exec -T php-fpm bin/magento setup:upgrade
 
 :: Configuring application
